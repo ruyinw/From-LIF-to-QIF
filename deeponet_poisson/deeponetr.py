@@ -59,18 +59,13 @@ def generate_regression_data(num_samples: int, T):
     branch_X_train = train_data['f_train'][:800, :]
     trunk_X_train = train_data['x_train'].reshape(-1, 1)
     Y = train_data['y_train'][:800, :]
-    # Y = Y/jnp.max(Y)
     Y_min = jnp.min(Y)
     Y_max = jnp.max(Y)
     Y = (Y-Y_min)/(Y_max-Y_min)
     print(branch_X_train.shape, trunk_X_train.shape, Y.shape)
-    # branch_X_test = train_data['f_train'][800:1600, :]
-    # trunk_X_test = train_data['x_train'].reshape(-1, 1)
-    # Y_test = train_data['y_train'][800:1600, :]
     test_data = sio.loadmat('experiments/deeponet/test_data.mat')
     branch_X_test = test_data['f_test'][:800, :]
     trunk_X_test = test_data['x_test'].reshape(-1, 1)[:800, :]
-    # trunk_X_test = jnp.concatenate((trunk_X_test, jnp.sin(trunk_X_test), jnp.sin(2*trunk_X_test), jnp.sin(3*trunk_X_test), jnp.cos(trunk_X_test), jnp.cos(2*trunk_X_test), jnp.cos(3*trunk_X_test)), axis=1)
     Y_test = test_data['y_test'][:800, :]
 
     branch_min = min(jnp.min(branch_X_test), jnp.min(branch_X_train))
@@ -78,30 +73,16 @@ def generate_regression_data(num_samples: int, T):
     train_input_b = (branch_X_train-branch_min)/(branch_max-branch_min)
     test_input_b = (branch_X_test-branch_min)/(branch_max-branch_min)
 
-    # Y_test = Y_test/jnp.max(Y_test)
-    # Y_test = (Y_test-jnp.min(Y_test))/(jnp.max(Y_test)-jnp.min(Y_test))
-    # Y_test = (Y_test-Y_min)/(Y_max-Y_min)
-    # train_input_b = input_normalization(branch_X_train, T)
+   
     train_input_t = input_normalization(trunk_X_train, T)
-    # test_input_b = input_normalization(branch_X_test, T)
     test_input_t = input_normalization(trunk_X_test, T)
-    # test_input_b = input_normalization(test_input_b, T)
-    # train_input_b = input_normalization(train_input_b, T)
+  
 
-    # print(jnp.min(train_input_b), jnp.max(train_input_b), jnp.min(test_input_b), jnp.max(test_input_b) )
     train_input_b = (1 - train_input_b)*T
     test_input_b = (1 - test_input_b)*T
     
 
-    # branch_min = min(jnp.min(train_input_b), jnp.min(test_input_b))
-    # branch_max = max(jnp.max(train_input_b), jnp.max(test_input_b))
-    # train_input_b = (train_input_b-branch_min)/(branch_max-branch_min)
-    # test_input_b = (test_input_b-branch_min)/(branch_max-branch_min)
-
-    # trunk_min = min(jnp.min(train_input_t), jnp.min(test_input_t))
-    # trunk_max = max(jnp.max(train_input_t), jnp.max(test_input_t))
-    # train_input_t = (train_input_t-trunk_min)/(trunk_max-branch_min)
-    # test_input_t = (test_input_t-trunk_min)/(trunk_max-trunk_min)
+    
 
 
     train_input_b = np.array(train_input_b)
@@ -141,17 +122,13 @@ def load_data(data: callable, root: str, config: dict) -> tuple[DataLoader, Data
     # Training set: Generate regression data
     num_train = config.get("num_train", 100)
     train_inputs_b, train_inputs_t, train_targets, test_inputs_b, test_inputs_t, test_targets = generate_regression_data(num_train, T)
-    # print(train_inputs)
     # Convert JAX arrays to PyTorch tensors
     train_inputs_t = jnp.repeat(train_inputs_t.reshape(1, train_inputs_t.shape[0], train_inputs_t.shape[1]), train_inputs_b.shape[0], axis=0)
     train_inputs_t = np.array(train_inputs_t)
-    # print(train_inputs_b.shape, train_inputs_t.shape, train_targets.shape)
     train_set = TensorDataset(torch.tensor(train_inputs_b), torch.tensor(train_inputs_t), torch.tensor(train_targets))
     train_loader = DataLoader(train_set, batch_size=Nbatch, shuffle=True)
 
     # Test set: Generate regression data
-    # num_test = config.get("num_test", 100)
-    # test_inputs, test_targets = generate_regression_data(num_test, T)
     test_inputs_t = jnp.repeat(test_inputs_t.reshape(1, test_inputs_t.shape[0], test_inputs_t.shape[1]), test_inputs_b.shape[0], axis=0)
     test_inputs_t = np.array(test_inputs_t)
     test_set = TensorDataset(torch.tensor(test_inputs_b), torch.tensor(test_inputs_t), torch.tensor(test_targets))
@@ -262,16 +239,14 @@ def init_phi0(neuron_b: AbstractPhaseOscNeuron, neuron_t: AbstractPhaseOscNeuron
     theta_b = neuron_b.Theta()
     theta_t = neuron_t.Theta()
 
-    # ### Initialize initial phase
-    # phi0 = theta / 2 * jnp.ones(N)
-    # print(jnp.ones(N_branch).shape)
+  
 
     ### Initialize initial phase (branch)
     phi0_b = theta_b / 2 * jnp.ones(N_branch)
 
     ### Initialize initial phase (trunk)
     phi0_t = theta_t / 2 * jnp.ones(N_trunk)
-    # phi0_t = theta_t / 2 * jnp.ones((Num_points, N_trunk))
+
 
     # return phi0
     return phi0_b, phi0_t
@@ -412,13 +387,9 @@ def outfn_b(
     # print(x_end_b.shape)
     pseudo_rates_b = jnp.zeros(Nin_b)
     for i in range(Nlayer_b - 1):
-        # print(pseudo_rates_b.shape, weights_b[i].shape)
         input_b = neuron_b.linear(pseudo_rates_b, weights_b[i])
-        # print(input_b.shape)
         x_end_i_b = x_end_b[:, i * Nhidden_b : (i + 1) * Nhidden_b]
-        # print(x_end_i_b.shape)
         pseudo_rates_b = neuron_b.construct_ratefn(x_end_i_b)(input_b)
-        # print(pseudo_rates_b.shape)
     input_b = neuron_b.linear(pseudo_rates_b, weights_b[Nlayer_b - 1])
 
     
@@ -476,15 +447,10 @@ def outfn_t(
     # print(x_end_t.shape)
     pseudo_rates_t = jnp.zeros((Nin_t, Num_points))
     for i in range(Nlayer_t - 1):
-        # print(pseudo_rates_t.shape, weights_t[i].shape)
         input_t = neuron_t.linear(pseudo_rates_t, weights_t[i])
-        # print(input_t.shape)
         x_end_i_t = x_end_t[:, i * Nhidden_t : (i + 1) * Nhidden_t]
-        # x_end_i_t = jnp.repeat(x_end_i_t, Num_points, axis=0)
         x_end_i_t = jnp.repeat(x_end_i_t.reshape(x_end_i_t.shape[0],x_end_i_t.shape[1],1), Num_points, axis=-1)
-        # print(x_end_i_t.shape)
         pseudo_rates_t = neuron_t.construct_ratefn(x_end_i_t)(input_t)
-        # print(pseudo_rates_t.shape)
     input_t = neuron_t.linear(pseudo_rates_t, weights_t[Nlayer_t - 1])
 
    
@@ -535,32 +501,14 @@ def lossfn(
     # subtract first
     loss = (t_out-target)**2
 
-    # regularization
-    # print((p_b[0][1])**2)
-    # print(p_t)
-    # for i in range(len(p_b[0])):
-
-    # p_b[i] for in range(len(p_b))
-    # b_reg = jnp.mean((jnp.array(p_b))**2)
+   
     b_reg_l2 = sum([jnp.sum(bw**2) for bw in p_b[0]])
     t_reg_l2 = sum([jnp.sum(tw**2) for tw in p_t[0]])
     b_reg_l1 = sum([jnp.sum(jnp.abs(bw)) for bw in p_b[0]])
     t_reg_l1 = sum([jnp.sum(jnp.abs(tw)) for tw in p_t[0]])
     
-    
-    # t_reg = jnp.mean((jnp.array(p_t))**2)
-    lam = 1e-7
-    # loss = loss + lam * (b_reg_l2 + t_reg_l2)
-    # loss = loss + lam * (b_reg_l1 + t_reg_l1)
-
-
-    # loss = (jnp.tan(t_out[0]*jnp.pi/2-jnp.pi) - target) ** 2
- 
-
-
     # Define a threshold for acceptable error (default threshold 0.1)
     threshold = config.get("reg_threshold", 0.1)
-    # correct = jnp.abs(t_out[0] - target) < threshold
     correct = 0
     
     return loss, correct
@@ -582,7 +530,6 @@ def simulatefn(
     Simulates the network and computes the loss and accuracy for batched input.
     """
     outs_b, outs_t = vmap(eventffwd, in_axes=(None, None, None, None, 0, 0, None))(neuron_b, neuron_t, p_b, p_t, input_b, input_t, config)
-    # print('p_b',p_b, 'p_t', p_t)
     t_outs_b = vmap(outfn_b, in_axes=(None, 0, None, None))(neuron_b, outs_b, p_b, config)
     t_outs_t = vmap(outfn_t, in_axes=(None, 0, None, None))(neuron_t, outs_t, p_t, config)
     
@@ -599,10 +546,6 @@ def simulatefn(
 
     loss, correct = vmap(lossfn, in_axes=(0, 0, None, None, None))(t_final, labels, config, p_b, p_t)
     mean_loss = jnp.mean(loss)
-
-    # # regularization
-    # b_loss = jnp.mean((jnp.array(p_b))**2)
-    # t_loss = jnp.mean((np.array(p_t))**2)
 
     accuracy = jnp.mean(correct)
     return mean_loss, accuracy
@@ -904,10 +847,7 @@ def run(
     p_init_t = [weights_t, phi0_t]
     p_init = [p_init_b, p_init_t]
 
-    # Optimizer
-    # schedule = optax.exponential_decay(lr, int(tau_lr * len(train_loader)), 1 / jnp.e)
-    # optim = optax.adabelief(schedule, b1=beta1, b2=beta2)
-   
+ 
     optim = optax.adabelief(lr, b1=beta1, b2=beta2)
   
     opt_state = optim.init(p)
@@ -966,7 +906,6 @@ def run(
             scale_min = jnp.min(scale_use)
             scale_max = jnp.max(scale_use)
             t_final_test = t_final_test * (scale_max - scale_min) + scale_min
-            # t_final_test = t_final_test * (jnp.max(labels_test) - jnp.min(labels_test)) + jnp.min(labels_test)
             test_loss = jnp.mean((t_final_test-labels_test)**2)
                 
         test_loss_list.append(test_loss)
@@ -982,18 +921,7 @@ def run(
         # Probe network
         metric = probe(p_b, p_t)
         metrics = {k: v + [metric[k]] for k, v in metrics.items()}
-    # total_time = jnp.sum(jnp.array(times))
-    # print('time:', total_time)
-    # sio.savemat('loss_his.mat', {'train_loss':train_loss, 'test_loss': test_loss_list})
-    # import matplotlib.pyplot as plt
-    # Nepochs = epoch + 1
-    # plt.loglog(jnp.linspace(1, Nepochs, Nepochs), train_loss, label="train", color="red")
-    # plt.loglog(jnp.linspace(1, Nepochs, Nepochs), test_loss_list, label="test", color="blue")
-    # plt.xlabel("epoch")
-    # plt.ylabel("MSE")
-    # plt.title("Loss history")
-    # plt.legend()
-    # plt.show()
+  
     p_b = p[0]
     p_t = p[1]
     test_data = sio.loadmat('experiments/deeponet/test_data.mat')
@@ -1106,10 +1034,8 @@ def run_example(p_b: list, p_t: list, neuron_b: AbstractPseudoPhaseOscNeuron, ne
     _, test_loader = load_data(datasets.MNIST, "data", config)
 
     input_b, input_t, label = next(iter(test_loader))
-    # input, label = jnp.array(input[2]), jnp.array(label[2])
     input_b, input_t, label = jnp.array(input_b[60]), jnp.array(input_t[60]), jnp.array(label[60])
     out_b, out_t = jeventffwd(p_b, p_t, input_b, input_t)
-    # t_outs_b, t_outs_t = joutfn(out_b, out_t, p_b, p_t)
     t_outs_b = joutfn_b(out_b, p_b)
     t_outs_t = joutfn_t(out_t, p_t)
     
@@ -1170,10 +1096,7 @@ def run_example(p_b: list, p_t: list, neuron_b: AbstractPseudoPhaseOscNeuron, ne
         "spiketimes_b": spiketimes_b,
         "spiketimes_t": spiketimes_t,
     }
-    # print('input',results['input'])
-    # print('label', results['label'])
-    # print('out spike times', t_outs)
-    # print('pred', predicted)
+
 
     return results
 

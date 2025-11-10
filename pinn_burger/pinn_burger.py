@@ -14,7 +14,6 @@ from matplotlib.patches import Rectangle
 from torch.utils.data import DataLoader, TensorDataset
 from torchvision import datasets
 from tqdm import trange as trange_script
-# from tqdm.notebook import trange as trange_notebook
 from tqdm import trange as trange_scipt  # Works in .py scripts
 import time
 import scipy.io as sio
@@ -31,10 +30,6 @@ from spikegd.utils.plotting import formatter, petroff10
 ### Data loading
 ############################
 
-# idx_x = jax.random.choice(random.PRNGKey(42), 256, shape=(150,), replace=False)
-# idx_t = jax.random.choice(random.PRNGKey(42), 100, shape=(70,), replace=False)
-# print(idx_x,idx_t)
-
 def normalize(x1,T):
   normalized_x1 = (x1 - jnp.min(x1))/(jnp.max(x1)-jnp.min(x1))
   normalized_x1=(1-normalized_x1)*T
@@ -46,7 +41,6 @@ def normalize(x1,T):
 def generate_regression_data(num_samples: int, T):
     """Generate regression data with Gaussian receptive field encoding."""
     data = sio.loadmat('experiments/pinnst/burgers_shock.mat')
-    # encoded_inputs = data['encoded_inputs']
     x = data['x']
     x = x[:, 0] #100
     t = data['t']
@@ -60,12 +54,9 @@ def generate_regression_data(num_samples: int, T):
     t_max = jnp.array([jnp.max(t)])
     x_in = x[::n]
     t_in = t[::n]
-    # x_in = x[idx_x]
-    # t_in = t[idx_t]
 
     x = jnp.unique(jnp.concatenate([x_min, x_in, x_max]))
     t = jnp.unique(jnp.concatenate([t_min, t_in, t_max]))
-    # print(x, t)
 
 
     X1, X2 = jnp.meshgrid(x, t)
@@ -76,99 +67,36 @@ def generate_regression_data(num_samples: int, T):
     x1 = X[:, 0]
     x2 = X[:, 1]
     print(jnp.min(x1), jnp.max(x1), jnp.min(x2), jnp.max(x2))
-    # print(x1.shape, x2.shape)
-    
- 
 
-    # # Split the random key for different data types
-    # key_eqn, key_ini, key_bnd = random.split(random.PRNGKey(42), 3)
-    
-    # # Create training input for equation points
-    # tx_eqn = random.uniform(key_eqn, (1000, 2))  # t_eqn = 0 ~ +1
-    # tx_eqn = tx_eqn.at[..., 1].set(2 * tx_eqn[..., 1] - 1)   # x_eqn = -1 ~ +1
-    
-    # # Create training input for initial condition points
-    # tx_ini = 2 * random.uniform(key_ini, (1000, 2)) - 1  # x_ini = -1 ~ +1
-    # tx_ini = tx_ini.at[..., 0].set(0)                                 # t_ini = 0
-    
-    # # Create training input for boundary condition points
-    # tx_bnd = random.uniform(key_bnd, (1000, 2))          # t_bnd = 0 ~ +1
-    # tx_bnd = tx_bnd.at[..., 1].set(2 * jnp.round(tx_bnd[..., 1]) - 1) # x_bnd = -1 or +1
-    
-    # # Create training output
-    # u_eqn = jnp.zeros((1000, 1))                        # u_eqn = 0
-    # u_ini = -jnp.sin(jnp.pi * tx_ini[..., 1, jnp.newaxis])          # u_ini = -sin(pi*x_ini)
-    # u_bnd = jnp.zeros((1000, 1))    
-
-
-    # # print(tx_eqn.shape, tx_ini.shape, tx_bnd.shape)
-    # print(u_eqn.shape, u_ini.shape, u_bnd.shape)
-
-    # # without encoding
-    # normalized_tx_eqn = normalize(tx_eqn,T)
-    # normalized_tx_ini = normalize(tx_ini,T)
-    # normalized_tx_bnd = normalize(tx_bnd,T)
-   
-    # encoded_inputs = jnp.concat((normalized_tx_eqn, normalized_tx_ini, normalized_tx_bnd), axis=1)
 
     normalized_x1 = normalize(x1,T)
     normalized_x2 = normalize(x2,T)
     
    
     encoded_inputs = jnp.concat((normalized_x1, normalized_x2), axis=1)
-    # print(encoded_inputs.shape)
-    # encoded_inputs = jnp.zeros((num_samples, 31))
-    # encoded_inputs=normalized.reshape(-1,1)
 
     ys = data['usol']
-    # ys_min = jnp.array([jnp.min(ys)])
-    # ys_max = jnp.array([jnp.max(ys)])
     ys = ys[::n, ::n]
     ys = np.zeros(X1.shape)
-    # print(ys.shape)
     ys = ys.reshape(-1, 1)
 
-    # print(ys[60])
-    # print(jnp.max(ys), jnp.min(ys))
-    
 
-    # scale y for y out of range
-    # y_abs = jnp.abs(ys)
-    # ys = ys/y_abs.max()
     encoded_inputs = np.array(encoded_inputs)
-    # print(type(encoded_inputs))
 
-
-    # num=25600
     num = len(x1)
-    # print(num)
     # Generate random t values for boundaries (equivalent to 'y' in your torch code)
     key1, key2 = random.split(random.PRNGKey(42))
-    # t_vals_nn = random.uniform(key1, (num,), minval=0, maxval=0.99)  # t in [0, 0.99]
-    # t_vals_nn = x2
     t_vals_nn = np.linspace(0, 0.99, num)
-    # print(t, t_vals_nn)
-    # t_vals = x2
-    
+   
     # Generate random x values for initial condition (equivalent to 'x' in your torch code) 
-    # x_vals_nn = 2 * random.uniform(key2, (num,)) - 1  # x in [-1, 1]
-    # x_vals_nn = x1
     x_vals_nn = np.linspace(-1, 1, num)
-    # print(x_vals_nn)
-    # print(type(x_vals_nn), x_vals_nn)
-    
-    # x_vals = x1
-    
-    
+
     # Boundary conditions - following torch.ones_like pattern
     x_bc1_nn = jnp.ones_like(t_vals_nn)     # x = +1 boundary (right)
     x_bc2_nn = -jnp.ones_like(t_vals_nn)    # x = -1 boundary (left)
     t_bc2_nn = jnp.zeros_like(x_vals_nn)    # t = 0 boundary (initial time)
     
 
-    
-
-    
     def normalize_global(x, xx, T):
         normalized_x = (x - jnp.min(xx))/(jnp.max(xx)-jnp.min(xx))
         normalized_x=(1-normalized_x)*T
@@ -176,57 +104,29 @@ def generate_regression_data(num_samples: int, T):
         return normalized_x
 
 
-    # x_bc1 = (x_bc1 - jnp.min(x1))/(jnp.max(x1)-jnp.min(x1))
-    # x_bc1=(1-x_bc1)*T
-    # x_bc1 = x_bc1.reshape(-1,1)
-
     x_bc1 = normalize_global(x_bc1_nn,x1,T)
     x_bc2 = normalize_global(x_bc2_nn,x1,T)
     t_bc2 = normalize_global(t_bc2_nn,x2,T)
 
-    # x_bc1 = x_bc1_nn.reshape(-1, 1)
-    # x_bc2 = x_bc2_nn.reshape(-1, 1)
-    # t_bc2 = t_bc2_nn.reshape(-1, 1)
+  
 
     x_vals = normalize_global(x_vals_nn,x1,T)
     t_vals = normalize_global(t_vals_nn,x2,T)
-    # x_vals = normalized_x1
-    # t_vals = normalized_x2
-
-    
-
-    # print(x_bc1.shape, t_vals.shape)
-    
-    # Create coordinate pairs
-    # Right boundary points: (t, x=+1)
-    # tx_right = jnp.stack([t_vals, x_bc1], axis=1).reshape(100, 2)
+   
+   
     xt_right = jnp.stack([x_bc1, t_vals], axis=1).reshape(num, 2)
-    # print(tx_right.shape)
-    
-    # Left boundary points: (t, x=-1) 
-    # tx_left = jnp.stack([t_vals, x_bc2], axis=1).reshape(100, 2)
     xt_left = jnp.stack([x_bc2, t_vals], axis=1).reshape(num, 2)
     
     # Initial condition points: (t=0, x)
-    # tx_initial = jnp.stack([t_bc2, x_vals], axis=1).reshape(100, 2)
     xt_initial = jnp.stack([x_vals, t_bc2], axis=1).reshape(num, 2)
-
-    # tx_initial_label = jnp.stack([t_bc2_nn, x_vals_nn], axis=1).reshape(100, 2)
     xt_initial_label = jnp.stack([x_vals_nn, t_bc2_nn], axis=1).reshape(num, 2)
-
     xt_right = np.array(xt_right)
     xt_left = np.array(xt_left)
     xt_initial = np.array(xt_initial)
 
-    
-    # print(tx_initial.shape)
-    
 
     # Create training output
     u_ic_label = -jnp.sin(jnp.pi * x_vals_nn) # u_ini = -sin(pi*x_ini)
-    # import matplotlib.pyplot as plt
-    # plt.plot(x_vals, u_ic_label)
-    # plt.savefig('experiments/pinnst/ic.png')
     u_bc_right_label = np.zeros((num, 1)) 
     u_bc_left_label = np.zeros((num, 1)) 
 
@@ -263,11 +163,7 @@ def load_data(data: callable, root: str, config: dict) -> tuple[DataLoader, Data
 
     # Training set: Generate regression data
     num_train = config.get("num_train", 1000)
-    # train_inputs, train_targets = generate_regression_data(num_train, T)
     train_inputs, train_targets, xt_right, xt_left, xt_initial, u_bc_right_label, u_bc_left_label, u_ic_label = generate_regression_data(num_train, T)
-    # print(type(train_inputs), type(train_targets))
-    # Convert JAX arrays to PyTorch tensors
-    # train_set = TensorDataset(torch.tensor(train_inputs), torch.tensor(train_targets))
     train_set = TensorDataset(torch.tensor(train_inputs), torch.tensor(train_targets), torch.tensor(xt_right), torch.tensor(xt_left), torch.tensor(xt_initial), torch.tensor(u_bc_right_label), torch.tensor(u_bc_left_label), torch.tensor(u_ic_label))
     train_loader = DataLoader(train_set, batch_size=Nbatch, shuffle=True)
 
@@ -376,13 +272,7 @@ def eventffwd(
     phi0: Array = p[1]
     x0 = phi0[jnp.newaxis]
 
-    # ### Input
-    # # Times computed as spike times of a LIF neuron with constant input Iconst
-    # I_const = jnp.arange(Nin_virtual, 0, -1)
-    # V_th = 0.01 * Nin_virtual
-    # times_in = jnp.where(
-    #     I_const > V_th, T * jnp.log(I_const / (I_const - V_th)), jnp.inf
-    # )
+   
     neurons_in = jnp.arange(Nin_virtual)
     # print(input.shape)
     times_in = input
@@ -390,15 +280,11 @@ def eventffwd(
 
     ### Input weights
     weights_in = weights[0]
-    # print(weights_in.shape)
     weights_in_virtual = jnp.zeros((N, Nin_virtual))
     weights_in_virtual = weights_in_virtual.at[:Nhidden, :].set(
             weights_in
         )
-    # for i in range(Nin_virtual):
-    #     weights_in_virtual = weights_in_virtual.at[:Nhidden, i].set(
-    #         weights_in @ (input == i)
-    #     )
+  
 
     ### Network weights
     weights_net = jnp.zeros((N, N))
@@ -464,19 +350,6 @@ def outfn(
     return t_outs
 
 
-# def physics_loss(p:list, input_physics):
-#     """Compute physics-informed loss for the PDE: -d²u/dx² = f(x)"""
-#     # Get second derivatives
-#     _, d2u_dx2 = compute_derivatives_batch(p, input_physics)
-    
-#     # PDE residual: -d²u/dx² - f(x) = 0
-#     pde_residual = -d2u_dx2 - source_term(input_physics)
-    
-#     # Mean squared error of PDE residual
-#     physics_loss_val = pde_residual**2
-    
-#     return physics_loss_val
-
 
 # burger shock 
 # %   u_t = -u*(u)' + (0.01/pi)*u",
@@ -509,41 +382,17 @@ def apply_boundary_conditions(neuron: AbstractPseudoPhaseOscNeuron, p: list, con
     # Boundary multiplier (vanishes at x=-1,1)
     boundary_mult = (-1-(1-2*input[0]/T)) * (1-(1-2*input[0]/T))
 
-    # boundary_mult = (T-input[0]) * input[0]
-    
-    # Time evolution term
-    # time_mult = jnp.tanh(((0.99/2)*(2-input[1])))  # or just t
 
-    time_mult = jnp.exp(-3.0*((0.99/T)*(T-input[1])))  # or just t
-
-    # time_mult = jnp.exp(3.0*(input[1]-T))  # or just t
-
-
-
-    # time_mult = jnp.exp(-1.0*((0.99/T)*(T-input[1])))  # or just t
-    
-    # Construct solution that automatically satisfies constraints
-    # pred = u_ic * time_mult + (1-time_mult) * boundary_mult * pred_raw
-    # time_weight = jnp.tanh(2.0 * ((0.99/2)*(2-input[1])))
-    # pred = u_ic * (1-time_weight) + time_weight * boundary_mult * pred_raw
+    time_mult = jnp.exp(-3.0*((0.99/T)*(T-input[1]))) 
 
     pred = u_ic * time_mult + ((0.99/T)*(T-input[1])) * boundary_mult * pred_raw
 
-
-    # pred = u_ic * time_mult + (T-input[1]) * boundary_mult * pred_raw
-   
-    # pred = input * (2 - input) * pred_raw
     return pred
 
 @eqx.filter_jit
 def compute_derivatives(neuron: AbstractPseudoPhaseOscNeuron, p: list, config: dict, input):
     """Compute first and second derivatives using automatic differentiation"""
 
-    # def forward(input):
-    #     out = apply_boundary_conditions(neuron, p, config, input)
-    #     return out
-
-    
     # Define scalar functions for x and t derivatives (following your 1D pattern)
     def u_scalar_x(x_scalar):
         xt_vec = jnp.array([x_scalar, input[1]])  # Fix t, vary x
@@ -556,10 +405,7 @@ def compute_derivatives(neuron: AbstractPseudoPhaseOscNeuron, p: list, config: d
         result = apply_boundary_conditions(neuron, p, config, xt_vec)
         # result = forward(xt_vec)
         return result[0] if result.ndim > 0 else result  # Return scalar
-    
-    # # Compute derivatives using JAX autodiff
-    # u = neuron(p, input)
-    # u = u[0] if u.ndim > 0 else u  # Ensure scalar
+   
     
     # First derivatives
     u_x = jax.grad(u_scalar_x)(input[0])
@@ -572,8 +418,6 @@ def compute_derivatives(neuron: AbstractPseudoPhaseOscNeuron, p: list, config: d
 
 def source_term(input):
     """Source term f(x) for the Poisson equation -d²u/dx² = f(x)"""
-    # Example: f(x) = 2π²sin(πx) (analytical solution: u(x) = 2sin(πx))
-    # return 2 * (jnp.pi**2) * jnp.sin(jnp.pi * (1-(input/2)))
     return 0
 
 
@@ -610,138 +454,33 @@ def lossfn(neuron: AbstractPseudoPhaseOscNeuron,
     u_x = -(T/2)* u_x
     u_xx = ((T**2)/4)*u_xx
 
-    # print(type(u_t))
 
     # go from spike time to original x and t
     u_t = (-T/0.99)*u_t
 
 
     u = apply_boundary_conditions(neuron, p, config, input_physics)
-    # print(type(u))
     u = u[0] if u.ndim > 0 else u  # Ensure scalar
-    # print(type(u))
-    
+   
     # PDE residual: u_t + u*u_x - (0.01/pi)*u_xx = 0
     pde_residual = u_t + u * u_x - (0.01 / jnp.pi) * u_xx
-
-    # data = sio.loadmat('experiments/pinnst/burgers_shock.mat')
-    # # encoded_inputs = data['encoded_inputs']
-    # x = data['x']
-    # x = x[:, 0]
-    # t = data['t']
-    # t = t[:, 0]
-    # X1, X2 = jnp.meshgrid(x, t)
-    # X1 = X1.ravel()
-    # X2 = X2.ravel()
-    # # print(X1.shape, X2.shape)
-    # X = jnp.column_stack((X1, X2))
-    # x1 = X[:, 0]
-    # x2 = X[:, 1]
-    # # # print(x1.shape, x2.shape)
-    # # normalized_x1 = normalize(x1,2.0)
-    # # normalized_x2 = normalize(x2,2.0)
-
-    # # Generate random t values for boundaries (equivalent to 'y' in your torch code)
-    # key1, key2 = random.split(random.PRNGKey(42))
-    # t_vals_nn = random.uniform(key1, (100,), minval=0, maxval=0.99)  # t in [0, 0.99]
-    # # t_vals = x2
-    
-    # # Generate random x values for initial condition (equivalent to 'x' in your torch code) 
-    # x_vals_nn = 2 * random.uniform(key2, (100,)) - 1  # x in [-1, 1]
-    # # print(type(x_vals_nn), x_vals_nn)
-    
-    # # x_vals = x1
-    
-    
-    # # Boundary conditions - following torch.ones_like pattern
-    # x_bc1_nn = jnp.ones_like(t_vals_nn)     # x = +1 boundary (right)
-    # x_bc2_nn = -jnp.ones_like(t_vals_nn)    # x = -1 boundary (left)
-    # t_bc2_nn = jnp.zeros_like(x_vals_nn)    # t = 0 boundary (initial time)
-    
-
-    
-
-    
-    # def normalize_global(x, x1):
-    #     normalized_x = (x - jnp.min(x1))/(jnp.max(x1)-jnp.min(x1))
-    #     normalized_x=(1-normalized_x)*2.0
-    #     normalized_x = normalized_x.reshape(-1,1)
-    #     return normalized_x
-
-
-    # # x_bc1 = (x_bc1 - jnp.min(x1))/(jnp.max(x1)-jnp.min(x1))
-    # # x_bc1=(1-x_bc1)*T
-    # # x_bc1 = x_bc1.reshape(-1,1)
-
-    # x_bc1 = normalize_global(x_bc1_nn,x1)
-    # x_bc2 = normalize_global(x_bc2_nn,x1)
-    # t_bc2 = normalize_global(t_bc2_nn,x2)
-    # x_vals = normalize_global(x_vals_nn,x1)
-    # t_vals = normalize_global(t_vals_nn,x2)
-
-    
-
-    # # print(x_bc1.shape, t_vals.shape)
-    
-    # # Create coordinate pairs
-    # # Right boundary points: (t, x=+1)
-    # # tx_right = jnp.stack([t_vals, x_bc1], axis=1).reshape(100, 2)
-    # xt_right = jnp.stack([x_bc1, t_vals], axis=1).reshape(100, 2)
-    # # print(tx_right.shape)
-    
-    # # Left boundary points: (t, x=-1) 
-    # # tx_left = jnp.stack([t_vals, x_bc2], axis=1).reshape(100, 2)
-    # xt_left = jnp.stack([x_bc2, t_vals], axis=1).reshape(100, 2)
-    
-    # # Initial condition points: (t=0, x)
-    # # tx_initial = jnp.stack([t_bc2, x_vals], axis=1).reshape(100, 2)
-    # xt_initial = jnp.stack([x_vals, t_bc2], axis=1).reshape(100, 2)
-
-    # # tx_initial_label = jnp.stack([t_bc2_nn, x_vals_nn], axis=1).reshape(100, 2)
-    # xt_initial_label = jnp.stack([x_vals_nn, t_bc2_nn], axis=1).reshape(100, 2)
-
-    
-    # # print(tx_initial.shape)
-    
-
-    # # Create training output
-    # u_ic_label = -jnp.sin(jnp.pi * x_vals_nn) # u_ini = -sin(pi*x_ini)
-    # u_bc_right_label = jnp.zeros((100, 1)) 
-    # u_bc_left_label = jnp.zeros((100, 1)) 
-
-    # # print(type(u_bc_left_label))
-
-    # # import matplotlib.pyplot as plt
-    # # # print(type(x_vals_nn), type(u_ic_label))
-    # # plt.plot(x_vals_nn, u_ic_label)
-    # # plt.save('experiments/pinnst/sin.png')
-    # # # print(xt_initial_label)
 
 
     u_bc_right = apply_boundary_conditions(neuron, p, config, input_right_bc)
     u_bc_left = apply_boundary_conditions(neuron, p, config, input_left_bc)
     u_ic = apply_boundary_conditions(neuron, p, config, input_ic)
 
-    # # print(type(u))
+
     u_bc_right = u_bc_right[0] if u_bc_right.ndim > 0 else u_bc_right  # Ensure scalar   
     u_bc_left = u_bc_left[0] if u_bc_left.ndim > 0 else u_bc_left  # Ensure scalar   
     u_ic = u_ic[0] if u_ic.ndim > 0 else u_ic  # Ensure scalar   
 
-    # print(u_bc_right.shape, u_ic.shape)
-    
     # Mean squared error of PDE residual
     physics_loss_val = pde_residual**2
-    # bc_loss = (u_bc_right - u_bc_right_label)**2 + (u_bc_left - u_bc_left_label)**2 
-    # ic_loss = (u_ic - u_ic_label)**2
     bc_loss = (u_bc_right - target_right_bc)**2 + (u_bc_left - target_left_bc)**2 
     ic_loss = (u_ic - target_ic)**2
-    # print(input_right_bc.shape, target_right_bc.shape, input_ic.shape, target_ic.shape)
     loss = physics_loss_val
-    # loss = bc_loss
-
-    # print(input_right_bc.shape, target_right_bc.shape, input_ic.shape, target_ic.shape)
-
-    # loss = ((t_out[1]-t_out[0]) - target) ** 2
+   
 
  
 
@@ -772,18 +511,7 @@ def apply_boundary_conditions_ord(neuron: AbstractPseudoPhaseOscNeuron, p: list,
 
 def compute_derivatives_ord(neuron: AbstractPseudoPhaseOscNeuron, p: list, config: dict, input):
     """Compute first and second derivatives using automatic differentiation"""
-    # # Ensure x is a scalar
-    # x_scalar = jnp.squeeze(input)  # or x.item() or x[0]
-    
-    # # Define function that returns scalar
-    # u_scalar = lambda x_val: jnp.squeeze(apply_boundary_conditions_ord(neuron, p, config, x_val))
-    
-    # # First derivative
-    # du_dx = jax.grad(u_scalar)(x_scalar)
-    
-    # # Second derivative
-    # d2u_dx2 = jax.grad(jax.grad(u_scalar))(x_scalar)
-
+  
     # Define function that takes scalar input but reshapes for network
     def u_scalar(t_scalar):
         t_vec = jnp.array([t_scalar])  # Convert scalar to vector for network
@@ -794,11 +522,6 @@ def compute_derivatives_ord(neuron: AbstractPseudoPhaseOscNeuron, p: list, confi
     du_dt = jax.grad(u_scalar)(input[0])
     d2u_dt2 = jax.grad(jax.grad(u_scalar))(input[0])
 
-    # # First derivative
-    # du_dx = jax.grad(lambda x_val: jnp.squeeze(apply_boundary_conditions_ord(neuron, p, config, x_val)))(input)
-    
-    # # Second derivative  
-    # d2u_dx2 = jax.grad(jax.grad(lambda x_val: jnp.squeeze(apply_boundary_conditions_ord(neuron, p, config, x_val))))(input)
     
     return du_dt, d2u_dt2
 

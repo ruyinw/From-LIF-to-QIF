@@ -7,7 +7,6 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import numpy as np
 
 from experiments.pinn.pinn import plot_error, plot_spikes, plot_traces, run, run_example, eventffwd, outfn
-# from experiments.regression.regressionqif import plot_spikes, plot_traces, run, run_example, eventffwd, outfn
 from spikegd.theta import ThetaNeuron
 from spikegd.utils.plotting import (
     cm2inch,
@@ -60,10 +59,6 @@ config_theta = {
     "beta2": 0.999,
     "p_flip": 0.0,
     "Nepochs": 500}
-
-
-
-
 
 
 
@@ -304,7 +299,6 @@ def plot_parabola(neuron: AbstractPhaseOscNeuron, p, config):
         return result
     
 
-    # print(pp.shape)
     # Now compute derivatives
     dydt = jax.vmap(first_derivative_scalar, in_axes=(None, None, 0, None))(neuron, p, encoded_inputs, config)
 

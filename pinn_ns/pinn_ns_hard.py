@@ -28,7 +28,7 @@ os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"]="false"
 
 # %%
 ############################
-### Batched Derivatives (NEW)
+### Batched Derivatives
 ############################
 
 def s_x(x):  # [-1,1] → [0,1], C1-flat at ±1
@@ -39,14 +39,6 @@ def s_y(y):
 
 def S_xy(x, y):
     return s_x(x) * s_y(y)
-
-# def chi_t(t, T=1.0):
-#     # 0 at t=0, ≈1 for moderate t; C1 and numerically gentle
-#     # you can also use chi_t = t if you prefer
-#     eps = 1e-6
-#     tau = 0.2  # tune if you like
-#     z = jnp.clip(t / T, 0.0, 1.0)
-#     return z / (z + tau + eps)
 
 def chi_t(t, T=1.0):
     return jnp.clip(t, 0.0, 1.0)           # exact 0 at t=0, 1 at t=1

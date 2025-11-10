@@ -2,7 +2,7 @@
 
 The data and code corresponds to experiments done in 'From LIF to QIF: Toward Differentiable Spiking Neurons for Scientific Machine Learning'. 
 
-##Usage:
+## Usage:
 The QIF neuron imeplementation on different examples and data are in each file, where the main file used to run ends with 'py'. 
 
 For example, 'parabola/regressionpy.py' is the main file to run the code and 'parabola/regression.py' is the file that will be called by the main file. 

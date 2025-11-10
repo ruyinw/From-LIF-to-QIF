@@ -6,7 +6,6 @@ from jax import random
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 from experiments.deeponet.deeponetr import plot_error, plot_spikes, plot_traces, run, run_example, eventffwd, outfn_b, outfn_t
-# from experiments.regression.regressionqif import plot_spikes, plot_traces, run, run_example, eventffwd, outfn
 from spikegd.theta import ThetaNeuron
 from spikegd.utils.plotting import (
     cm2inch,
@@ -76,24 +75,6 @@ def run_theta(config: dict) -> dict:
     return metrics
 
 
-def run_olif(config: dict) -> tuple:
-   
-    tau, I0, V_th = config["tau"], config["I0"], config["V_th"]
-    neuron = OscLIFNeuron(tau, I0, V_th)
-    metrics = run(neuron, config, progress_bar="script")
-    return metrics
-
-
-def run_qif(config: dict) -> tuple:
-    """
-    Wrapper to train a QIF neuron with the given configuration.
-
-    See docstring of `run` and article for more information.
-    """
-    tau, eps, alpha = config["tau"], config["eps"], config["alpha"]
-    neuron = QIFNeuron(tau, eps, alpha)
-    metrics = run(neuron, config, progress_bar="script")
-    return metrics
 
 
 seed = 0
@@ -104,9 +85,6 @@ metrics_list = []
 for seed in seeds:
     config_theta["seed"] = seed
     metrics = run_theta(config_theta)
-    # metrics = run_lif(config_lif)
-    # metrics = run_qif(config_qif)
-    # metrics = run_olif(config_olif)
     metrics_list.append(metrics)
 metrics_example = metrics_list[0]
 metrics = jax.tree.map(lambda *args: jnp.stack(args), *metrics_list)
@@ -148,17 +126,6 @@ def run_example_theta(p: list, config: dict) -> dict:
 
 
 
-
-def run_example_olif(p: list, config: dict) -> dict:
-    """
-    Wrapper to run network on one example input.
-
-    See docstring of `run_example` and article for more information.
-    """
-    tau, I0, V_th = config["tau"], config["I0"], config["V_th"]
-    neuron = OscLIFNeuron(tau, I0, V_th)
-    metrics = run_example(p, neuron, config)
-    return metrics
 
 
 
@@ -241,7 +208,6 @@ def plot_solution(neuron_b: AbstractPhaseOscNeuron, neuron_t: AbstractPhaseOscNe
     test_data = sio.loadmat('experiments/deeponet/test_data.mat')
     branch_X_test = test_data['f_test'][:800, :]
     trunk_X_test = test_data['x_test'].reshape(-1, 1)[:800, :]
-    # trunk_X_test = jnp.concatenate((trunk_X_test, jnp.sin(trunk_X_test), jnp.sin(2*trunk_X_test), jnp.sin(3*trunk_X_test), jnp.cos(trunk_X_test), jnp.cos(2*trunk_X_test), jnp.cos(3*trunk_X_test)), axis=1)
     Y_test = test_data['y_test'][:800, :]
 
     train_data = sio.loadmat('experiments/deeponet/train_data.mat')
@@ -266,7 +232,6 @@ def plot_solution(neuron_b: AbstractPhaseOscNeuron, neuron_t: AbstractPhaseOscNe
     # Run the network simulation on each input using eventffwd.
     # vmap over the batch dimension (each input sample).
     outs_b, outs_t = vmap(eventffwd, in_axes=(None, None, None, None, 0, 0, None))(neuron_b, neuron_t, p_b, p_t, test_input_b, test_input_t, config)
-    # print('p_b',p_b, 'p_t', p_t)
     t_outs_b = vmap(outfn_b, in_axes=(None, 0, None, None))(neuron_b, outs_b, p_b, config)
     t_outs_t = vmap(outfn_t, in_axes=(None, 0, None, None))(neuron_t, outs_t, p_t, config)
   
@@ -283,8 +248,6 @@ def plot_solution(neuron_b: AbstractPhaseOscNeuron, neuron_t: AbstractPhaseOscNe
     ground_truth = Y_test 
 
     print('mse', jnp.mean((ground_truth-preds)**2))
-    # print(preds.shape, ground_truth.shape)
-    # print(jnp.linalg.norm(ground_truth - preds, axis=1).shape)
     print('l2', jnp.mean(jnp.linalg.norm(ground_truth - preds, axis=1) / jnp.linalg.norm(ground_truth, axis=1)))
     
     sio.savemat('experiments/deeponet/deeponet.mat', {'pred':preds, 'true': ground_truth})

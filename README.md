@@ -3,7 +3,7 @@
 The data and code corresponds to experiments done in 'From LIF to QIF: Toward Differentiable Spiking Neurons for Scientific Machine Learning'. 
 
 ## Data
-All data used are either given in '.mat' format or generated in the code provided. 'burgers_shock.mat' is from 'https://github.com/omniscientoctopus/Physics-Informed-Neural-Networks/tree/main'.
+All data used are either given in '.mat' format or generated in the code provided.
 
 ## Usage:
 The QIF neuron imeplementation on different examples and data are in each file, where the main file used to run ends with 'py'. 

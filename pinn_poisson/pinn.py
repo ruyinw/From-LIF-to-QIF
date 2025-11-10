@@ -1,6 +1,3 @@
-
-
-
 from collections.abc import Callable
 from functools import partial
 
@@ -15,7 +12,6 @@ from matplotlib.patches import Rectangle
 from torch.utils.data import DataLoader, TensorDataset
 from torchvision import datasets
 from tqdm import trange as trange_script
-# from tqdm.notebook import trange as trange_notebook
 from tqdm import trange as trange_scipt  # Works in .py scripts
 import time
 import scipy.io as sio
@@ -95,7 +91,6 @@ def load_data(data: callable, root: str, config: dict) -> tuple[DataLoader, Data
     # Training set: Generate regression data
     num_train = config.get("num_train", 1000)
     train_inputs, train_targets = generate_regression_data(num_train, T)
-    # print(train_inputs)
     # Convert JAX arrays to PyTorch tensors
     train_set = TensorDataset(torch.tensor(train_inputs), torch.tensor(train_targets))
     train_loader = DataLoader(train_set, batch_size=Nbatch, shuffle=True)
@@ -107,10 +102,6 @@ def load_data(data: callable, root: str, config: dict) -> tuple[DataLoader, Data
     test_loader = DataLoader(test_set, batch_size=1000, shuffle=False)
 
     return train_loader, test_loader
-
-
-
-
 
 
 
@@ -341,11 +332,6 @@ def lossfn(neuron: AbstractPseudoPhaseOscNeuron,
     physics_loss_val = pde_residual**2
 
     loss = physics_loss_val
-
-
-
- 
-
 
     # Define a threshold for acceptable error (default threshold 0.1)
     threshold = config.get("reg_threshold", 0.1)
@@ -695,8 +681,6 @@ def run(
     schedule = optax.exponential_decay(lr, int(tau_lr * len(train_loader)), 1 / jnp.e)
     print('decay:', int(tau_lr * len(train_loader)))
     optim = optax.adabelief(schedule, b1=beta1, b2=beta2)
-    # optim = optax.adabelief(lr, b1=beta1, b2=beta2)
-    # optim = optax.adam(1e-4)
     opt_state = optim.init(p)
 
     # Metrics
@@ -809,8 +793,6 @@ def run(
             result = result[0] if result.shape[0] == 1 else jnp.squeeze(result)
         return result
     
-
-    # print(pp.shape)
     # Now compute derivatives
     dydt = jax.vmap(first_derivative_scalar, in_axes=(None, None, 0, None))(neuron, p, encoded_inputs, config)
 
@@ -828,7 +810,6 @@ def run(
     
     
     # Compute the ground truth: y = x^2.
-    # ground_truth = (x_vals.squeeze()) ** 2
     ground_truth = 2 * jnp.sin(jnp.pi * x_vals_test.squeeze())
 
     sio.savemat('experiments/pinn/qif_pinn1d_result.mat',{

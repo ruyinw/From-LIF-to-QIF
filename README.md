@@ -10,6 +10,6 @@ The QIF neuron imeplementation on different examples and data are in each file, 
 
 For example, 'parabola/regressionpy.py' is the main file to run the code and 'parabola/regression.py' is the file that will be called by the main file. 
 
-The module 'spikegd' called comes from 'https://github.com/chklos/spikegd' used in the paper 'Smooth Exact Gradient Descent Learning in Spiking Neural Networks' and the code in this repository is also built on it.
+The module 'spikegd' called in files comes from [spikegd](https://github.com/chklos/spikegd) used in the paper [Smooth Exact Gradient Descent Learning in Spiking Neural Networks](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.134.027301) by Christian Klos and Raoul-Martin Memmesheimer. The code in this current repository is also built on it.
 
 

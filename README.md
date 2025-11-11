@@ -1,6 +1,6 @@
 # From-LIF-to-QIF
 
-The data and code corresponds to experiments done in 'From LIF to QIF: Toward Differentiable Spiking Neurons for Scientific Machine Learning'. 
+The data and code corresponds to experiments done in [From LIF to QIF: Toward Differentiable Spiking Neurons for Scientific Machine Learning]{https://arxiv.org/abs/2511.06614}. 
 
 ## Data
 All data used are either given in '.mat' format or generated in the code provided.

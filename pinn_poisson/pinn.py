@@ -686,8 +686,7 @@ def run(
     # Metrics
     metrics: dict[str, Array | list] = {k: [v] for k, v in probe(p).items()}
 
-    # timing
-    times=[]
+  
     train_loss = []
 
     # if os.path.exists('qif_pinn1d_params.pkl'):
@@ -706,13 +705,9 @@ def run(
             input, labels = jnp.array(data[0]), jnp.array(data[1])
             key, input = flip(key, input)
 
-            st=time.time()
-
+           
             loss, acc, p, opt_state = trial(p, input, labels, opt_state)
 
-
-            et=time.time()
-            times.append(et-st)
             epoch_loss += loss
             batch_count += 1
         avg_epoch_loss = epoch_loss / batch_count
@@ -728,9 +723,7 @@ def run(
         metric = probe(p)
         metrics = {k: v + [metric[k]] for k, v in metrics.items()}
 
-    total_time = jnp.sum(jnp.array(times))
-    print('time:', total_time)
-
+  
 
     # Generate a set of test inputs uniformly in [0, 1]
     x_vals_test = jnp.linspace(0, 1, 5000)

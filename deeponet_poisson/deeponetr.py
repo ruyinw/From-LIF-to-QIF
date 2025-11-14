@@ -855,8 +855,7 @@ def run(
     # Metrics
     metrics: dict[str, Array | list] = {k: [v] for k, v in probe(p_b, p_t).items()}
 
-    # timing
-    times=[]
+   
     train_loss = []
     test_loss_list=[]
 
@@ -876,12 +875,11 @@ def run(
             input_b, input_t, labels = jnp.array(data[0]), jnp.array(data[1]), jnp.array(data[2])
             # key, input_b, input_t = flip(key, input_b, input_t)
 
-            st=time.time()
-            # print(p)
+          
             loss, acc, p, opt_state = trial(p, input_b, input_t, labels, opt_state)
 
-            et=time.time()
-            times.append(et-st)
+            
+           
             p_b = p[0]
             p_t = p[1]
             epoch_loss += loss
@@ -927,7 +925,6 @@ def run(
     test_data = sio.loadmat('experiments/deeponet/test_data.mat')
     branch_X_test = test_data['f_test'][:800, :]
     trunk_X_test = test_data['x_test'].reshape(-1, 1)[:800, :]
-    # trunk_X_test = jnp.concatenate((trunk_X_test, jnp.sin(trunk_X_test), jnp.sin(2*trunk_X_test), jnp.sin(3*trunk_X_test), jnp.cos(trunk_X_test), jnp.cos(2*trunk_X_test), jnp.cos(3*trunk_X_test)), axis=1)
     Y_test = test_data['y_test'][:800, :]
 
     train_data = sio.loadmat('experiments/deeponet/train_data.mat')
@@ -964,7 +961,7 @@ def run(
     sio.savemat('experiments/deeponet/qif_deeponet_result.mat', {'y_pred': preds,
                                         'y_true': Y_test,
                                         'loss': np.array(train_loss),
-                                        'time': np.array(times)})
+                                        })
 
 
     if jnp.any(jnp.isnan(jnp.array(metrics["loss"]))):

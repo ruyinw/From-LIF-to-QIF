@@ -846,10 +846,7 @@ def run(
     # Metrics tracking - initialize with probe results
     metrics = {k: [v] for k, v in initial_metrics.items()}
     
-    # Timing
-    times = []
-    
-    # 350 1e-3, 300+850 1e-4
+  
     # Load saved parameters if available
     if os.path.exists('ns_pinn_params_hard.pkl'):
         print(f"Loading parameters from 'ns_pinn_params_hard.pkl'")
@@ -864,8 +861,7 @@ def run(
         batch_count = 0
         
         for input, labels in create_batches(train_inputs, train_targets, config):
-            st = time.time()
-            
+        
             # Compute gradients and update (BATCHED!)
             (loss, acc), grad = gradfn(p, input, labels)
             
@@ -875,8 +871,7 @@ def run(
             # Clip phases
             p[1] = jnp.clip(p[1], 0, theta)
             
-            et = time.time()
-            times.append(et - st)
+          
             
             epoch_loss += loss
             batch_count += 1
@@ -1031,7 +1026,7 @@ def run(
         'u_pred': u_pred_test.reshape(nx_test, ny_test, nt_test),
         'v_pred': v_pred_test.reshape(nx_test, ny_test, nt_test),
         'p_pred': pre_pred_test.reshape(nx_test, ny_test, nt_test),
-        'time': times,
+      
         'loss': [m for m in metrics["loss"]]
     })
 

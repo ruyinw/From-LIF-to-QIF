@@ -12,7 +12,6 @@ from matplotlib.patches import Rectangle
 from torch.utils.data import DataLoader, TensorDataset
 from torchvision import datasets
 from tqdm import trange as trange_script
-# from tqdm.notebook import trange as trange_notebook
 from tqdm import trange as trange_scipt  # Works in .py scripts
 import time
 import numpy as np
@@ -548,10 +547,8 @@ def run(
 
     # Optimizer
     print('length', len(train_loader))
-    # schedule = optax.exponential_decay(lr, int(tau_lr * len(train_loader)), 1 / jnp.e)
-    # optim = optax.adabelief(schedule, b1=beta1, b2=beta2)
+   
     optim = optax.adabelief(lr, b1=beta1, b2=beta2)
-    # optim = optax.adam(1e-2)
     opt_state = optim.init(p)
 
     # Metrics
@@ -564,8 +561,7 @@ def run(
     # else:
     #     print(f"No saved parameters found. Training from scratch.")
 
-    # timing
-    times=[]
+    
 
     # loss history
     losses = []
@@ -580,12 +576,9 @@ def run(
             epoch_loss = 0
             batch_count = 0
 
-            st=time.time()
 
             loss, acc, p, opt_state = trial(p, input, labels, opt_state)
 
-            et=time.time()
-            times.append(et-st)
             epoch_loss += loss
             batch_count += 1
             avg_epoch_loss = epoch_loss / batch_count
@@ -600,8 +593,7 @@ def run(
         metric = probe(p)
         metrics = {k: v + [metric[k]] for k, v in metrics.items()}
 
-    # total_time = jnp.sum(jnp.array(times))
-    # print('time:', total_time)
+
     T = config["T"]
     X_test = np.linspace(-1, 1, 1000).reshape(-1, 1)
     Y_test = X_test**2
@@ -616,7 +608,7 @@ def run(
     scipy.io.savemat('experiments/regression_parabola_test/qif_parabola_result.mat', {'y_pred': Y_pred_test,
                                         'y_true': Y_test,
                                         'loss': np.array(losses),
-                                        'time': np.array(times)})
+                                       })
    
 
 

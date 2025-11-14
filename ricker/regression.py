@@ -555,8 +555,7 @@ def run(
     # Metrics
     metrics: dict[str, Array | list] = {k: [v] for k, v in probe(p).items()}
 
-    # timing
-    times=[]
+ 
     train_loss = []
 
     # if os.path.exists('qif_ricker_params.pkl'):
@@ -575,12 +574,8 @@ def run(
             input, labels = jnp.array(data[0]), jnp.array(data[1])
             key, input = flip(key, input)
 
-            st=time.time()
-
             loss, acc, p, opt_state = trial(p, input, labels, opt_state)
        
-            et=time.time()
-            times.append(et-st)
             epoch_loss += loss
             batch_count += 1
         avg_epoch_loss = epoch_loss / batch_count
@@ -642,7 +637,6 @@ def run(
     'x2': x2_test,
     'y_true': Y_test.reshape(300, 300),
     'y_pred': preds_test.reshape(300, 300),
-    'time': times,
     'loss': train_loss
     })
     

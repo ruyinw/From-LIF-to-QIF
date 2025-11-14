@@ -856,8 +856,7 @@ def run(
     # Metrics
     metrics: dict[str, Array | list] = {k: [v] for k, v in probe(p).items()}
 
-    # timing
-    times=[]
+  
     train_loss = []
 
 
@@ -877,12 +876,8 @@ def run(
             input, labels, xt_right, xt_left, xt_initial, u_bc_right_label, u_bc_left_label, u_ic_label = jnp.array(data[0]), jnp.array(data[1]), jnp.array(data[2]), jnp.array(data[3]), jnp.array(data[4]), jnp.array(data[5]), jnp.array(data[6]), jnp.array(data[7])
             key, input = flip(key, input)
 
-            st=time.time()
-
             loss, acc, p, opt_state = trial(p, input, labels, opt_state, xt_right, xt_left, xt_initial, u_bc_right_label, u_bc_left_label, u_ic_label)
 
-            et=time.time()
-            times.append(et-st)
             epoch_loss += loss
             batch_count += 1
         avg_epoch_loss = epoch_loss / batch_count
@@ -899,8 +894,6 @@ def run(
         metric = probe(p)
         metrics = {k: v + [metric[k]] for k, v in metrics.items()}
 
-    total_time = jnp.sum(jnp.array(times))
-    print('time:', total_time)
 
     def normalize_test(x1,T):
       normalized_x1 = (x1 - jnp.min(x1))/(jnp.max(x1)-jnp.min(x1))
@@ -977,7 +970,6 @@ def run(
     't': t_test,
     'u_true': u_test,
     'u_pred': pred_test,
-    'time': times,
     'loss': train_loss
     })
    
